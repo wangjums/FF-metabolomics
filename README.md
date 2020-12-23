@@ -1,4 +1,6 @@
 # FF-metabolomics
+Thanks for your interest and hope the code could help you.
+
 The first code with the name "1_Feature selection with RFfuncs" is used to choose the best feature number based on RFfuncs from Caret.The .csv data is needed here with the samples
 in the first colume, label in the second colume and features in the following columes. You can set the range feature number in the code and change other parameters in bulding the 
 model. The code might help you to chooose the best feature number according to the AUC of different models. After that, you could set the specific feature number and then choose 
