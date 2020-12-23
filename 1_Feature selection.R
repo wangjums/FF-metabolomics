@@ -11,8 +11,8 @@ library(ROCR)
 for (i in 1:1000){
   
   set.seed(i)
-  setwd("C:/Users/wangju/Desktop/subgroupE/subE_opt6") #matrix location
-  df<-read.csv("data6_mac _14F_E.csv",header = T) #import raw data
+  setwd("xxxx") #matrix location
+  df<-read.csv("xxx.csv",header = T) #import raw data
   head(df)
   sample_name<-df[1]
   ##feature filtration with three methods
@@ -39,7 +39,7 @@ for (i in 1:1000){
   Label<-as.factor(df[,2])
   
   ##feature selection based on rfFuncs
-  subsets = c(6)#set the feature selection number as x
+  subsets = c(15:20)#set the feature selection number as x
   ctrl= rfeControl(functions = rfFuncs, method = "cv",verbose = FALSE, returnResamp = "final") #set feature selection method and cross validation method
   Profile = rfe(df2, Label, sizes = subsets, rfeControl = ctrl)
   print(Profile)#check the accuracy of predicition model to decide the selected feature number
@@ -48,11 +48,9 @@ for (i in 1:1000){
   Profile$optsize
   
   feature_new<-as.data.frame(Profile$optVariables)#extract the slected features
-  setwd("C:/Users/wangju/Desktop/subgroupE/subE_opt6")
-  write.table(feature_new,file=paste("SubE_opt",i,".csv"),sep=",",row.names = F)
+  setwd("xxxx")
+  write.table(feature_new,file=paste("Opt",i,".csv"),sep=",",row.names = F)
 }
-
-###############################################
 
 ######The AUC(ROC) results of different feature numbers
 library(caret)
@@ -64,14 +62,14 @@ library(ranger)
 library(dplyr)
 library(pROC)
 library(ROCR)
-setwd("C:/Users/wangju/Desktop/subgroupE/subE_opt6")#¶¨ÎÄ¼þ¼ÐÎ»ÖÃ
-file_path <- "C:/Users/wangju/Desktop/subgroupE/subE_opt6"
-files_list <- list.files(file_path, pattern = "SubE_opt")
+setwd("xxxx")
+file_path <- "xxxx"
+files_list <- list.files(file_path, pattern = "Opt")
 All_data <- data.frame(File_name = character(),AUC = numeric(), Feature_number = numeric(),Feature = character())
 
 for(x in files_list){
   temp_data <- read_csv(x) %>% mutate(file_name = x)
-  df<-read.csv("data6_mac _14F_E.csv",header = T)
+  df<-read.csv("xxx.csv",header = T)
   features <- temp_data$`Profile$optVariables`
   num <- length(features)
   df_n <- df%>%dplyr::select(features)
@@ -85,7 +83,7 @@ for(x in files_list){
   testy = Label[-inTrain]
 
   fitControl = trainControl(method = "repeatedcv", number = 10, repeats = 3,returnResamp = "all")
-  grid_rf <- expand.grid(.mtry=c(1,2,3))
+  grid_rf <- expand.grid(.mtry=c(1,2,3)) #set hyper-parameter 
   rfFit1 = train(trainx,trainy,method = "rf",trControl = fitControl,tuneGrid = grid_rf,verbose = FALSE)
   plot(rfFit1)
   vip <- as.data.frame(varImp(rfFit1)[1])
@@ -96,19 +94,19 @@ for(x in files_list){
   file_name <- paste("Feature_importance",x1,".csv",sep = "")
   write.csv(vip1,file = file_name,row.names = F)
   models_rf=list(rfFit1)
-  predValues = extractPrediction(models_rf,testX = testx, testY = testy)#ÑµÁ·¼¯ºÍÑéÖ¤¼¯µÄÔ¤²â½á¹ûºÍÊµ¼Ê½á¹û
+  predValues = extractPrediction(models_rf,testX = testx, testY = testy)
   head(predValues)
-  testValues = subset(predValues, dataType == "Test")#Extract the test set resultÌáÈ¡ÑéÖ¤¼¯µÄ½á¹û
-  probValues = extractProb(models_rf,testX = testx, testY = testy)#The prediction result of train and test setÑµÁ·¼¯ºÍÑéÖ¤¼¯µÄÔ¤²â½á¹ûºÍÊµ¼Ê½á¹ûÒÔ¼°¸ÅÂÊ
+  testValues = subset(predValues, dataType == "Test")#Extract the test set result
+  probValues = extractProb(models_rf,testX = testx, testY = testy)#The prediction result of train and test setçŽ‡
 
   testProbs = subset(probValues, dataType == "Test")#Extract the result and probability of test set
   head(testValues)
   Pred1 = subset(testValues, model == "rf")
-  confusionMatrix(Pred1$pred, Pred1$obs)#Generate the confusion matrixÉú³ÉÑéÖ¤¼¯µÄ»ìºÏ¾ØÕó
-  #»æÖÆROCÇúÏß
-  testProbs$lable=ifelse(testProbs$obs=='B',yes=1,0)
-  pred1 = prediction(testProbs$B,testProbs$lable)
-  perf1 = performance(pred1, measure="tpr", x.measure="fpr" )#¼ÆËãtprºÍfprÓÃÀ´»æÖÆROC
+  confusionMatrix(Pred1$pred, Pred1$obs)#Generate the confusion matrix
+  #ROC
+  testProbs$lable=ifelse(testProbs$obs=='P',yes=1,0)
+  pred1 = prediction(testProbs$P,testProbs$lable)
+  perf1 = performance(pred1, measure="tpr", x.measure="fpr" )
   pred.rocr.auc.perf = performance(pred1,measure = "auc",x.measure = "cutoff")
   AUC<- as.data.frame(pred.rocr.auc.perf@y.values[[1]])
   auc1 <- AUC$`pred.rocr.auc.perf@y.values[[1]]`
